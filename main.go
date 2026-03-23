@@ -1,9 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 )
+
+const storeFileName = "store.json"
+
+type storeData map[string]string
 
 func main() {
 	if len(os.Args) < 2 {
@@ -44,9 +49,24 @@ func handleSet(args []string) {
 		fmt.Fprintln(os.Stderr, "Usage: store set <key> <value>")
 		os.Exit(1)
 	}
+
 	key := args[0]
 	value := args[1]
-	fmt.Printf("set command: %s=%s\n", key, value)
+
+	data, err := loadStore()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to load store: %v\n", err)
+		os.Exit(1)
+	}
+
+	data[key] = value
+
+	if err := saveStore(data); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to save store: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("stored %s\n", key)
 }
 
 func handleGet(args []string) {
@@ -69,4 +89,39 @@ func handleDelete(args []string) {
 	}
 	key := args[0]
 	fmt.Printf("delete command: %s\n", key)
+}
+
+func loadStore() (storeData, error) {
+	contents, err := os.ReadFile(storeFileName)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return storeData{}, nil
+		}
+
+		return nil, err
+	}
+
+	if len(contents) == 0 {
+		return storeData{}, nil
+	}
+
+	var data storeData
+	if err := json.Unmarshal(contents, &data); err != nil {
+		return nil, err
+	}
+
+	if data == nil {
+		return storeData{}, nil
+	}
+
+	return data, nil
+}
+
+func saveStore(data storeData) error {
+	contents, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(storeFileName, contents, 0644)
 }
