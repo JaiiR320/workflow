@@ -5,32 +5,45 @@ description: Refine a feature idea through focused questions, then produce a pla
 
 # Refine
 
-Refine the user's feature or design idea into a shared understanding, then produce a plan document.
+Refine a feature idea into a plan document.
+
+## Gate Phrases
+
+Do NOT write files until user says:
+- "looks good, write it"
+- "approved, save the plan"
+- "write the plan"
+- "save to file"
+
+Stay in discussion mode otherwise.
 
 ## Rules
 
-1. **One question at a time. Always.** Never present a list of questions.
+1. **One question per response.** Never present multiple questions, never use bullet lists of questions, never ask "should it be X or Y or Z?" Ask exactly ONE question, wait for the answer, then ask the next.
 
-2. **Stay at the right altitude.** Architecture, interfaces, data flow, state management, expected behavior, coding patterns and idioms. Not edge cases, defensive coding, or implementation minutiae.
+2. **Stay at the right altitude.** Architecture, interfaces, data flow, state management, expected behavior. Not edge cases or implementation minutiae.
 
 3. **Let context guide you.** Don't ask things already resolved or inferable from previous answers.
 
-4. **Know when to stop.** When the design space is covered, say so and summarize what was decided. Don't drill for the sake of it.
+4. **Know when to stop.** When the design space is covered, present the summary. Don't drill for the sake of it.
 
-5. **Explore the codebase when it helps.** If a question can be answered by looking at existing code, look at the code instead of asking.
+5. **Explore the codebase when it helps.** If a question can be answered by looking at existing code, look instead of asking.
 
 ## Flow
 
-### Phase 1: Refine
+### Phase 1: Interview
 
-1. The user describes their feature or problem, then invokes this skill.
-2. Ask questions one at a time, working through the design space.
-3. When done, present a summary of decisions in chat. Wait for confirmation.
-4. If the user raises new concerns or changes a decision, continue asking questions until the new branches are resolved, then re-summarize.
+1. Ask questions one at a time, working through the design space.
+2. When done, present summary of decisions in chat.
+3. Say: "Design space covered. Say 'looks good, write it' to create the plan."
+4. Wait for gate phrase.
 
-### Phase 2: Plan
+### Phase 2: Write
 
-5. Read the template at `template.md` in this skill's directory.
-6. Write the plan following the template structure. Present it in chat first.
-7. Wait for the user to approve or request changes.
-8. Once approved, write the plan to `.plans/<feature-name>/plan.md`, creating the directory if needed. Ask the user for the feature name if it isn't obvious from context.
+5. Read template at `template.md`.
+6. Write plan following template structure. Present in chat first.
+7. Once approved, write to `.plans/<feature-name>/plan.md`. Ask for feature name if not obvious.
+
+## Next Step
+
+Plan written. Next: slice this plan. Say "slice this" when ready.

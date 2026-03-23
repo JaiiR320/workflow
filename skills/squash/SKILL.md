@@ -5,7 +5,7 @@ description: Fix a failing test with minimal changes. Run in a fresh session wit
 
 # Squash
 
-A failing test exists. Make it pass. Run this in a fresh session with no prior context about the bug.
+Fix a failing test with minimal changes.
 
 ## Rules
 
@@ -17,10 +17,9 @@ A failing test exists. Make it pass. Run this in a fresh session with no prior c
 
 ## Flow
 
-1. The user points to the failing test.
-2. Run the test to confirm it fails.
-3. Read the test to understand what behavior is expected.
-4. Read the implementation to find the root cause.
-5. Fix the bug with the smallest possible change.
-6. Run the test to confirm it passes.
-7. Run the full test suite to confirm nothing else broke.
+1. Run the test to confirm it fails.
+2. Read the test to understand expected behavior.
+3. Read the implementation to find the root cause.
+4. Fix the bug with the smallest possible change.
+5. Run the test to confirm it passes.
+6. Run the full test suite to confirm nothing else broke.

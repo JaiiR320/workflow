@@ -5,36 +5,57 @@ description: Break a plan into vertical slices that can be executed independentl
 
 # Slice
 
-Break a plan into thin vertical slices. Each slice cuts through all layers of the system end-to-end and is independently verifiable.
+Break a plan into vertical slices.
+
+## Gate Phrases
+
+Do NOT write files until user says:
+- "slice it up"
+- "approved, write the slices"
+- "save the slices"
+- "write them to files"
+
+Stay in discussion mode otherwise.
 
 ## Rules
 
-1. **Vertical, not horizontal.** Each slice goes through every layer — schema, API, UI, tests. Never a slice that's just "set up the database" or "build the frontend."
+1. **Vertical, not horizontal.** Each slice goes through every layer — schema, API, UI, tests. Never a slice that's just "set up database" or "build frontend."
 
-2. **Independently verifiable.** Every slice must have a meaningful QA step. If you can't describe how to verify it, it's too small. If the QA step covers more than one distinct user flow, it's too big.
+2. **Independently verifiable.** Every slice must have a meaningful QA step. If you can't describe how to verify it, it's too small. If QA covers more than one distinct user flow, it's too big.
 
-3. **Thin but not trivial.** Renaming variables or adding a single if statement is not a slice. A slice delivers a narrow but complete behavior.
+3. **Thin but not trivial.** Renaming variables or adding a single if statement is not a slice. Deliver a narrow but complete behavior.
 
 4. **First slice is the simplest end-to-end path.** The "hello world" tracer bullet. Later slices add breadth — more user stories, edge cases, polish.
 
-5. **Keep the count reasonable.** If you're looking at more than 10 slices, the feature is probably too big and should be split into multiple plans. One or two slices is fine for a straightforward feature.
+5. **Keep the count reasonable.** More than 10 slices means the feature is too big. Split into multiple plans. One or two slices is fine for straightforward features.
 
 ## Flow
 
-1. Use the conversation context as the primary source of truth. Reference `.plans/<feature-name>/plan.md` only if needed to fill gaps.
-2. Explore the codebase to understand existing patterns, integration layers, and natural seams.
-3. Draft the slices. For each slice, show:
+### Phase 1: Draft
+
+1. Use conversation context as primary source of truth. Reference `.plans/<feature-name>/plan.md` only if needed to fill gaps.
+2. Explore codebase to understand existing patterns, integration layers, and natural seams.
+3. Draft slices. For each slice, show:
    - Title
    - What it does end-to-end
-   - Which slices it depends on (if any)
-   - Which expected behaviors from the plan it addresses
-4. Present the full breakdown in chat. Wait for the user to approve, adjust, merge, split, or reorder.
-5. Once approved, read the template at `template.md` in this skill's directory.
-6. Write each slice as a numbered file in `.plans/<feature-name>/pending/`, creating the directory if needed.
+   - Dependencies (if any)
+   - Expected behaviors addressed
+4. Present full breakdown in chat.
+5. Say: "Draft complete. Say 'slice it up' to save slices to files."
+6. Wait for gate phrase.
+
+### Phase 2: Write
+
+7. Read template at `template.md`.
+8. Write each slice as numbered file in `.plans/<feature-name>/pending/`.
+
+## Next Step
+
+Slices written. Next: execute slices. Say "execute the next slice" when ready.
 
 ## Completion
 
-When a slice is finished during execution (by the user or an agent), the executor should:
+When a slice finishes during execution:
 
-1. Append a `## Completion` section to the slice file describing what was built, decisions made, deviations from the plan, and anything the next slice should know.
-2. Move the file from `pending/` to `completed/`.
+1. Append `## Completion` section describing what was built, decisions made, deviations, and context for next slice.
+2. Move file from `pending/` to `completed/`.
