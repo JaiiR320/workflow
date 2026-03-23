@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
+	"text/tabwriter"
 )
 
 const storeFileName = "store.json"
@@ -74,12 +76,57 @@ func handleGet(args []string) {
 		fmt.Fprintln(os.Stderr, "Usage: store get <key>")
 		os.Exit(1)
 	}
+	if len(args) > 1 {
+		fmt.Fprintln(os.Stderr, "Usage: store get <key>")
+		os.Exit(1)
+	}
+
 	key := args[0]
-	fmt.Printf("get command: %s\n", key)
+
+	data, err := loadStore()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to load store: %v\n", err)
+		os.Exit(1)
+	}
+
+	value, ok := data[key]
+	if !ok {
+		fmt.Println("not found")
+		return
+	}
+
+	fmt.Println(value)
 }
 
 func handleList(args []string) {
-	fmt.Println("list command")
+	if len(args) > 0 {
+		fmt.Fprintln(os.Stderr, "Usage: store list")
+		os.Exit(1)
+	}
+
+	data, err := loadStore()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to load store: %v\n", err)
+		os.Exit(1)
+	}
+
+	if len(data) == 0 {
+		fmt.Println("no entries")
+		return
+	}
+
+	keys := make([]string, 0, len(data))
+	for key := range data {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	fmt.Fprintln(w, "KEY\tVALUE")
+	for _, key := range keys {
+		fmt.Fprintf(w, "%s\t%s\n", key, data[key])
+	}
+	_ = w.Flush()
 }
 
 func handleDelete(args []string) {
