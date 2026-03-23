@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"sort"
 	"text/tabwriter"
@@ -13,106 +15,114 @@ const storeFileName = "store.json"
 type storeData map[string]string
 
 func main() {
-	if len(os.Args) < 2 {
-		printUsage()
-		os.Exit(0)
+	os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
+}
+
+func run(args []string, stdout, stderr io.Writer) int {
+	if len(args) == 0 {
+		printUsage(stdout)
+		return 0
 	}
 
-	command := os.Args[1]
+	command := args[0]
+	var err error
 
 	switch command {
 	case "set":
-		handleSet(os.Args[2:])
+		err = handleSet(args[1:], stdout)
 	case "get":
-		handleGet(os.Args[2:])
+		err = handleGet(args[1:], stdout)
 	case "list":
-		handleList(os.Args[2:])
+		err = handleList(args[1:], stdout)
 	case "delete":
-		handleDelete(os.Args[2:])
+		err = handleDelete(args[1:], stdout)
 	default:
-		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
-		printUsage()
-		os.Exit(1)
+		fmt.Fprintf(stderr, "Unknown command: %s\n", command)
+		printUsage(stderr)
+		return 1
 	}
+
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+
+	return 0
 }
 
-func printUsage() {
-	fmt.Println("Usage: store <command> [args]")
-	fmt.Println("")
-	fmt.Println("Commands:")
-	fmt.Println("  set <key> <value>   Set a key-value pair")
-	fmt.Println("  get <key>           Get value for a key")
-	fmt.Println("  list                List all key-value pairs")
-	fmt.Println("  delete <key>        Delete a key-value pair")
+func printUsage(w io.Writer) {
+	fmt.Fprintln(w, "Usage: store <command> [args]")
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Commands:")
+	fmt.Fprintln(w, "  set <key> <value>   Set a key-value pair")
+	fmt.Fprintln(w, "  get <key>           Get value for a key")
+	fmt.Fprintln(w, "  list                List all key-value pairs")
+	fmt.Fprintln(w, "  delete <key>        Delete a key-value pair")
 }
 
-func handleSet(args []string) {
-	if len(args) < 2 {
-		fmt.Fprintln(os.Stderr, "Usage: store set <key> <value>")
-		os.Exit(1)
+func handleSet(args []string, stdout io.Writer) error {
+	if len(args) != 2 {
+		return errors.New("Usage: store set <key> <value>")
 	}
 
 	key := args[0]
 	value := args[1]
+	if err := validateKey(key); err != nil {
+		return err
+	}
 
 	data, err := loadStore()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to load store: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to load store: %w", err)
 	}
 
 	data[key] = value
 
 	if err := saveStore(data); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to save store: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to save store: %w", err)
 	}
 
-	fmt.Printf("stored %s\n", key)
+	fmt.Fprintf(stdout, "stored %s\n", key)
+	return nil
 }
 
-func handleGet(args []string) {
-	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "Usage: store get <key>")
-		os.Exit(1)
-	}
-	if len(args) > 1 {
-		fmt.Fprintln(os.Stderr, "Usage: store get <key>")
-		os.Exit(1)
+func handleGet(args []string, stdout io.Writer) error {
+	if len(args) != 1 {
+		return errors.New("Usage: store get <key>")
 	}
 
 	key := args[0]
+	if err := validateKey(key); err != nil {
+		return err
+	}
 
 	data, err := loadStore()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to load store: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to load store: %w", err)
 	}
 
 	value, ok := data[key]
 	if !ok {
-		fmt.Println("not found")
-		return
+		return errors.New("not found")
 	}
 
-	fmt.Println(value)
+	fmt.Fprintln(stdout, value)
+	return nil
 }
 
-func handleList(args []string) {
+func handleList(args []string, stdout io.Writer) error {
 	if len(args) > 0 {
-		fmt.Fprintln(os.Stderr, "Usage: store list")
-		os.Exit(1)
+		return errors.New("Usage: store list")
 	}
 
 	data, err := loadStore()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to load store: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to load store: %w", err)
 	}
 
 	if len(data) == 0 {
-		fmt.Println("no entries")
-		return
+		fmt.Fprintln(stdout, "no entries")
+		return nil
 	}
 
 	keys := make([]string, 0, len(data))
@@ -121,45 +131,49 @@ func handleList(args []string) {
 	}
 	sort.Strings(keys)
 
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	w := tabwriter.NewWriter(stdout, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(w, "KEY\tVALUE")
 	for _, key := range keys {
 		fmt.Fprintf(w, "%s\t%s\n", key, data[key])
 	}
-	_ = w.Flush()
+	return w.Flush()
 }
 
-func handleDelete(args []string) {
-	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "Usage: store delete <key>")
-		os.Exit(1)
-	}
-	if len(args) > 1 {
-		fmt.Fprintln(os.Stderr, "Usage: store delete <key>")
-		os.Exit(1)
+func handleDelete(args []string, stdout io.Writer) error {
+	if len(args) != 1 {
+		return errors.New("Usage: store delete <key>")
 	}
 
 	key := args[0]
+	if err := validateKey(key); err != nil {
+		return err
+	}
 
 	data, err := loadStore()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to load store: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to load store: %w", err)
 	}
 
 	if _, ok := data[key]; !ok {
-		fmt.Println("not found")
-		return
+		return errors.New("not found")
 	}
 
 	delete(data, key)
 
 	if err := saveStore(data); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to save store: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to save store: %w", err)
 	}
 
-	fmt.Printf("deleted %s\n", key)
+	fmt.Fprintf(stdout, "deleted %s\n", key)
+	return nil
+}
+
+func validateKey(key string) error {
+	if key == "" {
+		return errors.New("key cannot be empty")
+	}
+
+	return nil
 }
 
 func loadStore() (storeData, error) {
