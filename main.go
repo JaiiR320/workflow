@@ -134,8 +134,32 @@ func handleDelete(args []string) {
 		fmt.Fprintln(os.Stderr, "Usage: store delete <key>")
 		os.Exit(1)
 	}
+	if len(args) > 1 {
+		fmt.Fprintln(os.Stderr, "Usage: store delete <key>")
+		os.Exit(1)
+	}
+
 	key := args[0]
-	fmt.Printf("delete command: %s\n", key)
+
+	data, err := loadStore()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to load store: %v\n", err)
+		os.Exit(1)
+	}
+
+	if _, ok := data[key]; !ok {
+		fmt.Println("not found")
+		return
+	}
+
+	delete(data, key)
+
+	if err := saveStore(data); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to save store: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("deleted %s\n", key)
 }
 
 func loadStore() (storeData, error) {
