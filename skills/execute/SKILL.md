@@ -10,10 +10,11 @@ Execute the next pending slice from a plan.
 ## Flow
 
 1. **Discover context.**
-   - Find plan file in `.plans/*/plan.md`
-   - Read plan to understand the feature
-   - Read all completed slices (if any)
-   - Find next pending slice (lowest numbered file)
+   - Resolve the target plan name from the user request
+   - Read `.plans/<plan>/plan.md` to understand the feature
+   - Read completed slices from `.plans/<plan>/completed/` (if any)
+   - Find the next pending slice from `.plans/<plan>/pending/` (lowest numbered file)
+   - Do not read plan or slice files outside `.plans/<plan>/`
 
 2. **Execute slice.**
    - Load context: plan + completed slices + current slice

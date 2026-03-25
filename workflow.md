@@ -13,7 +13,7 @@ This workflow uses skills that interview first, then write files when explicitly
 2. **Slice** - Say "slice this" to break the plan into vertical, independently testable slices. Discuss the breakdown, then say "slice it up" to write files to `.plans/<feature>/pending/slice-1.md`, etc.
 
 3. **Execute Loop** - For each pending slice:
-   - Say "execute the next slice". Skill auto-loads context (plan + completed + current) if needed, then implements end-to-end.
+   - Say "execute the next slice for plan <feature>". Skill loads only that plan's context (`plan.md` + completed slices + current pending slice) and then implements end-to-end.
    - Say "commit" to commit the completed slice.
    - Repeat until all slices are in `completed/`.
    - Can be used in a "ralph" style loop, or manually in a new session.
@@ -30,7 +30,7 @@ Use these when bugs are discovered after slices are completed, and you are QAing
 
 - **Gate phrases:** Interview skills (refine, slice, repro) never write files until you say specific phrases.
 - **Vertical slices:** Each slice cuts through all layers (schema, API, UI, tests) and is independently verifiable.
-- **Execution loop:** Execute slice → Commit → Next slice. Fresh sessions recommended per slice to avoid context bloat.
+- **Execution loop:** Execute slice for the target plan → Commit → Next slice. Fresh sessions recommended per slice to avoid context bloat.
 
 ## Directory Structure
 
